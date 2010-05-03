@@ -19,22 +19,47 @@
 
 package com.google.code.camel.smtp;
 
+import java.io.InputStream;
 import java.util.Iterator;
 
 import org.apache.camel.impl.DefaultMessage;
 import org.apache.james.protocols.smtp.MailEnvelope;
 import org.apache.mailet.MailAddress;
 
+/**
+ * Message implementation which can holds all data for a {@link MailEnvelope}.
+ * 
+ * The sender, recipient list and message size get stored in the headers.
+ * The message itself get stored a {@link InputStream} in the body
+ *
+ */
 public class MailEnvelopeMessage extends DefaultMessage{
 
+    /**
+     * String representation of the sender specified in the mail from transmission
+     */
     public final static String SMTP_SENDER_ADRRESS = "SMTP_SENDER_ADDRESS";
+    
+    /**
+     * String representation of the recipients specified in the rcpt to transmissions. 
+     * The recipients are comma-seperated
+     */
     public final static String SMTP_RCPT_ADRRESS_LIST = "SMTP_RCPT_ADRRESS_LIST";
+    
+    /**
+     * The message size
+     */
     public final static String SMTP_MESSAGE_SIZE = "SMTP_MESSAGE_SIZE";
 
     public MailEnvelopeMessage(MailEnvelope env) {
         populate(env);
     }
     
+    /**
+     * Populate the Message with values from the given {@link MailEnvelope}
+     * 
+     * @param env
+     */
     public void populate(MailEnvelope env) {
         setHeader(SMTP_SENDER_ADRRESS, env.getSender().toString());
         

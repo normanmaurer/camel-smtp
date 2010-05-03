@@ -18,6 +18,8 @@
  ****************************************************************/
 package com.google.code.camel.smtp;
 
+
+import org.apache.camel.Component;
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
@@ -29,13 +31,18 @@ import org.apache.camel.impl.DefaultEndpoint;
  */
 public class SMTPEndpoint extends DefaultEndpoint{
 
+    private SMTPConfigurationImpl config;
+
+    public SMTPEndpoint(String endPointUri, Component component, SMTPConfigurationImpl config) {
+        super(endPointUri, component);
+        this.config = config;
+    }
     /*
      * (non-Javadoc)
      * @see org.apache.camel.Endpoint#createConsumer(org.apache.camel.Processor)
      */
-    public Consumer createConsumer(Processor arg0) throws Exception {
-        
-        return null;
+    public Consumer createConsumer(Processor processor) throws Exception {
+        return new SMTPConsumer(this,processor, config);
     }
 
     /**

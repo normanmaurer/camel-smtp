@@ -18,11 +18,9 @@
  ****************************************************************/
 package com.google.code.camel.smtp;
 
-import static org.jboss.netty.buffer.ChannelBuffers.copiedBuffer;
 import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,8 +36,6 @@ import org.apache.james.protocols.api.ExtensibleHandler;
 import org.apache.james.protocols.api.ProtocolHandlerChain;
 import org.apache.james.protocols.api.WiringException;
 import org.apache.james.protocols.smtp.MailEnvelope;
-import org.apache.james.protocols.smtp.SMTPConfiguration;
-import org.apache.james.protocols.smtp.SMTPResponse;
 import org.apache.james.protocols.smtp.SMTPSession;
 import org.apache.james.protocols.smtp.core.ExpnCmdHandler;
 import org.apache.james.protocols.smtp.core.HeloCmdHandler;
@@ -60,14 +56,11 @@ import org.apache.james.protocols.smtp.hook.HookResult;
 import org.apache.james.protocols.smtp.hook.HookReturnCode;
 import org.apache.james.protocols.smtp.hook.MessageHook;
 import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
 import org.jboss.netty.handler.codec.frame.Delimiters;
-import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 
 /**
@@ -78,10 +71,10 @@ import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 public class SMTPConsumer extends DefaultConsumer {
 
     private ServerBootstrap bootstrap;
-    private SMTPConfiguration config;
+    private SMTPConfigurationImpl config;
     private Log logger = LogFactory.getLog(SMTPConsumer.class);
     
-    public SMTPConsumer(Endpoint endpoint, Processor processor, SMTPConfiguration config) {
+    public SMTPConsumer(Endpoint endpoint, Processor processor, SMTPConfigurationImpl config) {
         super(endpoint, processor);
         this.config = config;
     }
@@ -100,7 +93,7 @@ public class SMTPConsumer extends DefaultConsumer {
         // Bind and start to accept incoming connections.
         bootstrap.setOption("backlog", 250);
         bootstrap.setOption("reuseAddress", true);
-        bootstrap.bind(new InetSocketAddress(25));
+        bootstrap.bind(new InetSocketAddress(config.getBindIP(), config.getBindPort()));
     }
 
     /**
@@ -119,6 +112,7 @@ public class SMTPConsumer extends DefaultConsumer {
         public SMTPPipelineFactory() throws WiringException{
             chain = new ProtocolHandlerChainImpl();
         }
+        
         public ChannelPipeline getPipeline() throws Exception {
             
             // Create a default pipeline implementation.
@@ -140,50 +134,9 @@ public class SMTPConsumer extends DefaultConsumer {
     }
 
     /**
-     * Encode SMTPResponse
+     * ProtocolChain which handles SMTP command dispatching
      *
      */
-    private final class SMTPResponseEncoder extends OneToOneEncoder {
-
-        private String charset = "US_ASCII";
-
-        @Override
-        protected Object encode(ChannelHandlerContext arg0, Channel arg1, Object obj) throws Exception {
-            StringBuilder builder = new StringBuilder();
-            SMTPResponse response = (SMTPResponse) obj;
-            List<String> lines = getResponse(response);
-            for (int i = 0; i < lines.size(); i++) {
-                builder.append(lines.get(i));
-                if (i < lines.size()) {
-                    builder.append("\r\n");
-                }
-            }
-            return copiedBuffer(builder.toString(), charset);
-        }
-
-        private List<String> getResponse(SMTPResponse response) {
-            List<String> responseList = new ArrayList<String>();
-
-            for (int k = 0; k < response.getLines().size(); k++) {
-                StringBuffer respBuff = new StringBuffer(256);
-                respBuff.append(response.getRetCode());
-                if (k == response.getLines().size() - 1) {
-                    respBuff.append(" ");
-                    respBuff.append(response.getLines().get(k));
-
-                } else {
-                    respBuff.append("-");
-                    respBuff.append(response.getLines().get(k));
-
-                }
-                responseList.add(respBuff.toString());
-            }
-
-            return responseList;
-        }
-
-    }
-    
     private final class ProtocolHandlerChainImpl implements ProtocolHandlerChain {
         private final List<Object> handlers = new LinkedList<Object>();
 
@@ -240,8 +193,16 @@ public class SMTPConsumer extends DefaultConsumer {
         }
     }
     
+    /**
+     * Send the {@link Exchange} to the {@link Processor} after receiving a message via SMTP
+     *
+     */
     private final class ProcessorMessageHook implements MessageHook {
 
+        /*
+         * (non-Javadoc)
+         * @see org.apache.james.protocols.smtp.hook.MessageHook#onMessage(org.apache.james.protocols.smtp.SMTPSession, org.apache.james.protocols.smtp.MailEnvelope)
+         */
         public HookResult onMessage(SMTPSession arg0, MailEnvelope env) {
             Exchange exchange = getEndpoint().createExchange();
             exchange.setIn(new MailEnvelopeMessage(env));

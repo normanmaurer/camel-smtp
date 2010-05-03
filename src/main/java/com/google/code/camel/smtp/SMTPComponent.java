@@ -18,17 +18,20 @@
  ****************************************************************/
 package com.google.code.camel.smtp;
 
+import java.net.URI;
 import java.util.Map;
 
 import org.apache.camel.Endpoint;
 import org.apache.camel.impl.DefaultComponent;
 
 public class SMTPComponent extends DefaultComponent{
+    SMTPConfigurationImpl config = new SMTPConfigurationImpl();
 
     @Override
-    protected Endpoint createEndpoint(String arg0, String arg1, Map<String, Object> arg2) throws Exception {
-        // TODO Auto-generated method stub
-        return null;
+    protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
+        config.parseURI(new URI(remaining), parameters, this);
+        setProperties(config, parameters);
+        return new SMTPEndpoint(remaining, this, config);
     }
 
 }
