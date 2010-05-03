@@ -31,9 +31,9 @@ import org.apache.camel.impl.DefaultEndpoint;
  */
 public class SMTPEndpoint extends DefaultEndpoint{
 
-    private SMTPConfigurationImpl config;
+    private SMTPURIConfiguration config;
 
-    public SMTPEndpoint(String endPointUri, Component component, SMTPConfigurationImpl config) {
+    public SMTPEndpoint(String endPointUri, Component component, SMTPURIConfiguration config) {
         super(endPointUri, component);
         this.config = config;
     }

@@ -24,7 +24,12 @@ import java.util.Map;
 import org.apache.camel.util.URISupport;
 import org.apache.james.protocols.smtp.SMTPConfiguration;
 
-public class SMTPConfigurationImpl implements SMTPConfiguration{
+
+/**
+ * Parse a given uri and set the configuration for the specified parameters in the uri
+ *
+ */
+public class SMTPURIConfiguration implements SMTPConfiguration{
 
     private String bindIP;
     private int bindPort;
@@ -35,6 +40,14 @@ public class SMTPConfigurationImpl implements SMTPConfiguration{
     private long maxMessageSize = 0;
     private String helloName = "Camel SMTP";
 
+    /**
+     * Parse the given uri and set the configuration for it
+     * 
+     * @param uri
+     * @param parameters
+     * @param component
+     * @throws Exception
+     */
     public void parseURI(URI uri, Map<String, Object> parameters, SMTPComponent component) throws Exception {
         
         bindIP = uri.getHost();
@@ -59,47 +72,90 @@ public class SMTPConfigurationImpl implements SMTPConfiguration{
         }
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.apache.james.protocols.smtp.SMTPConfiguration#getHelloName()
+     */
     public String getHelloName() {
         return helloName;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.apache.james.protocols.smtp.SMTPConfiguration#getMaxMessageSize()
+     */
     public long getMaxMessageSize() {
         return maxMessageSize;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.apache.james.protocols.smtp.SMTPConfiguration#getResetLength()
+     */
     public int getResetLength() {
         return resetLength;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.apache.james.protocols.smtp.SMTPConfiguration#getSMTPGreeting()
+     */
     public String getSMTPGreeting() {
         return greeting;
     }
 
+    /**
+     * Auth is not required 
+     */
     public boolean isAuthRequired(String arg0) {
         return false;
     }
 
+    /**
+     * Relaying is allowed
+     */
     public boolean isRelayingAllowed(String arg0) {
         return true;
     }
 
+    /**
+     * No StartTLS is supported
+     */
     public boolean isStartTLSSupported() {
         return false;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.apache.james.protocols.smtp.SMTPConfiguration#useAddressBracketsEnforcement()
+     */
     public boolean useAddressBracketsEnforcement() {
         return enforceBrackets;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see org.apache.james.protocols.smtp.SMTPConfiguration#useHeloEhloEnforcement()
+     */
     public boolean useHeloEhloEnforcement() {
         return enforceHeloEhlo;
     }
     
+    /**
+     * Return the IP address to bind the SMTP server to
+     * 
+     * @return bindIP
+     */
     public String getBindIP() {
         return bindIP;
     }
    
     
+    /**
+     * Return the port to bind the SMTP server to
+     * 
+     * @return bindPort
+     */
     public int getBindPort() {
         return bindPort;
     }

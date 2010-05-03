@@ -71,10 +71,10 @@ import org.jboss.netty.handler.stream.ChunkedWriteHandler;
 public class SMTPConsumer extends DefaultConsumer {
 
     private ServerBootstrap bootstrap;
-    private SMTPConfigurationImpl config;
+    private SMTPURIConfiguration config;
     private Log logger = LogFactory.getLog(SMTPConsumer.class);
     
-    public SMTPConsumer(Endpoint endpoint, Processor processor, SMTPConfigurationImpl config) {
+    public SMTPConsumer(Endpoint endpoint, Processor processor, SMTPURIConfiguration config) {
         super(endpoint, processor);
         this.config = config;
     }
