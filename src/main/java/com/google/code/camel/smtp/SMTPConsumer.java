@@ -37,6 +37,7 @@ import org.apache.james.protocols.api.ProtocolHandlerChain;
 import org.apache.james.protocols.api.WiringException;
 import org.apache.james.protocols.smtp.MailEnvelope;
 import org.apache.james.protocols.smtp.SMTPSession;
+import org.apache.james.protocols.smtp.core.AbstractAuthRequiredToRelayRcptHook;
 import org.apache.james.protocols.smtp.core.ExpnCmdHandler;
 import org.apache.james.protocols.smtp.core.HeloCmdHandler;
 import org.apache.james.protocols.smtp.core.HelpCmdHandler;
@@ -157,6 +158,7 @@ public class SMTPConsumer extends DefaultConsumer {
             handlers.add(new PostmasterAbuseRcptHook());
             handlers.add(new ReceivedDataLineFilter());
             handlers.add(new ProcessorMessageHook());
+            handlers.add(new AllowToRelayHandler());
             wireExtensibleHandlers();
         }
 
@@ -193,6 +195,19 @@ public class SMTPConsumer extends DefaultConsumer {
         }
     }
     
+    private final class AllowToRelayHandler extends AbstractAuthRequiredToRelayRcptHook {
+
+        @Override
+        protected boolean isLocalDomain(String domain) {
+            List<String> domains = config.getLocalDomains();
+            if (domains == null) {
+                return true;
+            } else {
+                return domains.contains(domain.trim());
+            }
+        }
+        
+    }
     /**
      * Send the {@link Exchange} to the {@link Processor} after receiving a message via SMTP
      *

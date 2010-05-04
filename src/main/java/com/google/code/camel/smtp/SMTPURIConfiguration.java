@@ -19,7 +19,10 @@
 package com.google.code.camel.smtp;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.apache.camel.util.URISupport;
 import org.apache.james.protocols.smtp.SMTPConfiguration;
@@ -39,6 +42,7 @@ public class SMTPURIConfiguration implements SMTPConfiguration{
     private int resetLength = 0;
     private long maxMessageSize = 0;
     private String helloName = "Camel SMTP";
+    private List<String> localDomains;
 
     /**
      * Parse the given uri and set the configuration for it
@@ -69,6 +73,14 @@ public class SMTPURIConfiguration implements SMTPConfiguration{
         }
         if (settings.containsKey("helloName")) {
             helloName = (String) settings.get("helloName");
+        }
+        if (settings.containsKey("localDomains")) {
+            String domainString = (String) settings.get("localDomains");
+            StringTokenizer tokenizer = new StringTokenizer(domainString,",");
+            localDomains = new ArrayList<String>();
+            while (tokenizer.hasMoreTokens()) {
+                localDomains.add(tokenizer.nextToken().trim());
+            }
         }
     }
 
@@ -158,5 +170,14 @@ public class SMTPURIConfiguration implements SMTPConfiguration{
      */
     public int getBindPort() {
         return bindPort;
+    }
+    
+    /**
+     * Return the domains for which we want to accept mails
+     * 
+     * @return domains
+     */
+    public List<String> getLocalDomains() {
+        return localDomains;
     }
 }
