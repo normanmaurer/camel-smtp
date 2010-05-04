@@ -96,15 +96,6 @@ public class SMTPNettySession implements SMTPSession{
     }
 
     /**
-     * Return underlying IoSession
-     * 
-     * @return session
-     */
-    public ChannelHandlerContext getChannelHandlerContext() {
-        return handlerContext;
-    }
-
-    /**
      * @see org.apache.james.api.protocol.TLSSupportedSession#isStartTLSSupported()
      */
     public boolean isStartTLSSupported() {
@@ -139,7 +130,7 @@ public class SMTPNettySession implements SMTPSession{
      * @see org.apache.james.api.protocol.ProtocolSession#writeResponse(org.apache.james.api.protocol.Response)
      */
     public void writeResponse(Response response) {
-        Channel channel = getChannelHandlerContext().getChannel();
+        Channel channel = handlerContext.getChannel();
         if (response != null && channel.isConnected()) {
             channel.write(response);
             if (response.isEndSession()) {
@@ -152,7 +143,7 @@ public class SMTPNettySession implements SMTPSession{
      * 
      */
     public void writeStream(InputStream stream) {
-        Channel channel = getChannelHandlerContext().getChannel();
+        Channel channel = handlerContext.getChannel();
         if (stream != null && channel.isConnected()) {
             channel.write(new ChunkedStream(stream));
         }
@@ -213,7 +204,7 @@ public class SMTPNettySession implements SMTPSession{
      * @see org.apache.james.protocols.smtp.SMTPSession#popLineHandler()
      */
     public void popLineHandler() {
-        getChannelHandlerContext().getPipeline()
+        handlerContext.getPipeline()
                 .remove("lineHandler" + lineHandlerCount);
         lineHandlerCount--;
     }
@@ -223,7 +214,7 @@ public class SMTPNettySession implements SMTPSession{
      */
     public void pushLineHandler(LineHandler<SMTPSession> overrideCommandHandler) {
         lineHandlerCount++;
-        getChannelHandlerContext().getPipeline().addBefore("coreHandler",
+        handlerContext.getPipeline().addBefore("coreHandler",
                 "lineHandler" + lineHandlerCount,
                 new LineHandlerUpstreamHandler<SMTPSession>(overrideCommandHandler));
     }

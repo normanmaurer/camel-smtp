@@ -89,7 +89,7 @@ public class SMTPConsumer extends DefaultConsumer {
 
         bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool()));
         // Configure the pipeline factory.
-        bootstrap.setPipelineFactory(new SMTPPipelineFactory());
+        bootstrap.setPipelineFactory(new SMTPChannelPipelineFactory());
 
         // Bind and start to accept incoming connections.
         bootstrap.setOption("backlog", 250);
@@ -107,10 +107,10 @@ public class SMTPConsumer extends DefaultConsumer {
     }
 
     
-    private final class SMTPPipelineFactory implements ChannelPipelineFactory {
+    private final class SMTPChannelPipelineFactory implements ChannelPipelineFactory {
         private ProtocolHandlerChain chain;;
         
-        public SMTPPipelineFactory() throws WiringException{
+        public SMTPChannelPipelineFactory() throws WiringException{
             chain = new ProtocolHandlerChainImpl();
         }
         
@@ -195,12 +195,18 @@ public class SMTPConsumer extends DefaultConsumer {
         }
     }
     
+    /**
+     * Check if the domain is local and if so accept the email. If not reject it
+     * 
+     *
+     */
     private final class AllowToRelayHandler extends AbstractAuthRequiredToRelayRcptHook {
 
         @Override
         protected boolean isLocalDomain(String domain) {
             List<String> domains = config.getLocalDomains();
             if (domains == null) {
+                // no restriction was set.. accept it!
                 return true;
             } else {
                 return domains.contains(domain.trim());
