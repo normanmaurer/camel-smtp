@@ -231,7 +231,6 @@ public class SMTPConsumer extends DefaultConsumer {
         public HookResult onMessage(SMTPSession arg0, MailEnvelope env) {
             Exchange exchange = getEndpoint().createExchange();
             exchange.setIn(new MailEnvelopeMessage(env));
-            System.out.println("HERE!");
             try {
                 getProcessor().process(exchange);
             } catch (Exception e) {
