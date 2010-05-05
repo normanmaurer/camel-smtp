@@ -28,6 +28,8 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.net.smtp.SMTPClient;
 import org.junit.Test;
 
+import com.google.code.camel.smtp.MailEnvelopeMessage;
+
 public class SMTPTest extends CamelTestSupport{
 
     @EndpointInject(uri = "mock:result")
