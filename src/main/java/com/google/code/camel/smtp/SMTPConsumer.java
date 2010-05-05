@@ -21,7 +21,6 @@ package com.google.code.camel.smtp;
 import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.net.InetSocketAddress;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -32,7 +31,7 @@ import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultConsumer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.james.protocols.api.ExtensibleHandler;
+import org.apache.james.protocols.api.AbstractProtocolHandlerChain;
 import org.apache.james.protocols.api.ProtocolHandlerChain;
 import org.apache.james.protocols.api.WiringException;
 import org.apache.james.protocols.smtp.MailEnvelope;
@@ -140,7 +139,7 @@ public class SMTPConsumer extends DefaultConsumer {
      * ProtocolChain which handles SMTP command dispatching
      *
      */
-    private final class ProtocolHandlerChainImpl implements ProtocolHandlerChain {
+    private final class ProtocolHandlerChainImpl extends AbstractProtocolHandlerChain {
         private final List<Object> handlers = new LinkedList<Object>();
 
         public ProtocolHandlerChainImpl() throws WiringException {
@@ -166,37 +165,11 @@ public class SMTPConsumer extends DefaultConsumer {
             wireExtensibleHandlers();
         }
 
-        @SuppressWarnings("unchecked")
-        public <T> LinkedList<T> getHandlers(Class<T> type) {
-            LinkedList<T> result = new LinkedList<T>();
-            for (Iterator<?> i = handlers.iterator(); i.hasNext(); ) {
-                Object handler = i.next();
-                if (type.isInstance(handler)) {
-                    result.add((T)handler);
-                }
-            }
-            return result;
+        @Override
+        protected List<Object> getHandlers() {
+            return handlers;
         }
-        
-        /**
-         * ExtensibleHandler wiring
-         * 
-         * @throws WiringException 
-         */
-        protected void wireExtensibleHandlers() throws WiringException {
-            for (Iterator<?> h = handlers.iterator(); h.hasNext(); ) {
-                Object handler = h.next();
-                if (handler instanceof ExtensibleHandler) {
-                    final ExtensibleHandler extensibleHandler = (ExtensibleHandler) handler;
-                    final List<Class<?>> markerInterfaces = extensibleHandler.getMarkerInterfaces();
-                    for (int i= 0;i < markerInterfaces.size(); i++) {
-                        final Class<?> markerInterface = markerInterfaces.get(i);
-                        final List<?> extensions = getHandlers(markerInterface);
-                        extensibleHandler.wireExtensions(markerInterface,extensions);
-                    }
-                }
-            }
-        }
+
     }
     
     /**
@@ -234,7 +207,6 @@ public class SMTPConsumer extends DefaultConsumer {
             try {
                 getProcessor().process(exchange);
             } catch (Exception e) {
-                e.printStackTrace();
                 return new HookResult(HookReturnCode.DENYSOFT);
             }
             return new HookResult(HookReturnCode.OK);

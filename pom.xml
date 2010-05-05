@@ -45,6 +45,14 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
+    <repository>
+      <id>repository.apache.org</id>
+      <url>http://repository.apache.org/snapshots/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+ 
   </repositories>
   
   <build>
@@ -179,7 +187,17 @@
         </exclusion>
       </exclusions>
     </dependency>
- 
+       <dependency>
+        <groupId>org.apache.james</groupId>
+        <artifactId>apache-mailet</artifactId>
+        <version>2.4</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
     <dependency>
       <groupId>dnsjava</groupId>
       <artifactId>dnsjava</artifactId>
