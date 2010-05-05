@@ -33,6 +33,7 @@ import org.apache.james.protocols.smtp.SMTPSession;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ChannelUpstreamHandler;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -44,6 +45,7 @@ import org.jboss.netty.handler.codec.frame.TooLongFrameException;
  * {@link ChannelUpstreamHandler} which handles the SMTP Protocol
  *
  */
+@ChannelPipelineCoverage("all")
 public class SMTPChannelUpstreamHandler extends SimpleChannelUpstreamHandler implements ChannelAttributeSupport {
 
     private ProtocolHandlerChain chain;
@@ -108,7 +110,8 @@ public class SMTPChannelUpstreamHandler extends SimpleChannelUpstreamHandler imp
             ctx.getChannel().write(new SMTPResponse(SMTPRetCode.SYNTAX_ERROR_COMMAND_UNRECOGNIZED, "Line length exceeded. See RFC 2821 #4.5.3.1."));
         } else {
             if (channel.isConnected()) {
-                ctx.getChannel().write(new SMTPResponse(SMTPRetCode.LOCAL_ERROR, "Unable to process smtp request"));
+                e.getCause().printStackTrace();
+                //ctx.getChannel().write(new SMTPResponse(SMTPRetCode.LOCAL_ERROR, "Unable to process smtp request"));
             }
             cleanup(channel);
             channel.close();

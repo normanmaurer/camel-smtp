@@ -34,7 +34,7 @@ public class SMTPComponent extends DefaultComponent{
 
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
-        config.parseURI(new URI(remaining), parameters, this);
+        config.parseURI(new URI(uri), parameters, this);
         setProperties(config, parameters);
         return new SMTPEndpoint(remaining, this, config);
     }

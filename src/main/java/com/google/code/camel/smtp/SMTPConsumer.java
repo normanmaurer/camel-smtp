@@ -38,6 +38,8 @@ import org.apache.james.protocols.api.WiringException;
 import org.apache.james.protocols.smtp.MailEnvelope;
 import org.apache.james.protocols.smtp.SMTPSession;
 import org.apache.james.protocols.smtp.core.AbstractAuthRequiredToRelayRcptHook;
+import org.apache.james.protocols.smtp.core.DataCmdHandler;
+import org.apache.james.protocols.smtp.core.DataLineMessageHookHandler;
 import org.apache.james.protocols.smtp.core.ExpnCmdHandler;
 import org.apache.james.protocols.smtp.core.HeloCmdHandler;
 import org.apache.james.protocols.smtp.core.HelpCmdHandler;
@@ -153,10 +155,12 @@ public class SMTPConsumer extends DefaultConsumer {
             handlers.add(new RcptCmdHandler());
             handlers.add(new RsetCmdHandler());
             handlers.add(new VrfyCmdHandler());
+            handlers.add(new DataCmdHandler());
             handlers.add(new MailSizeEsmtpExtension());
             handlers.add(new WelcomeMessageHandler());
             handlers.add(new PostmasterAbuseRcptHook());
             handlers.add(new ReceivedDataLineFilter());
+            handlers.add(new DataLineMessageHookHandler());
             handlers.add(new ProcessorMessageHook());
             handlers.add(new AllowToRelayHandler());
             wireExtensibleHandlers();
@@ -227,9 +231,11 @@ public class SMTPConsumer extends DefaultConsumer {
         public HookResult onMessage(SMTPSession arg0, MailEnvelope env) {
             Exchange exchange = getEndpoint().createExchange();
             exchange.setIn(new MailEnvelopeMessage(env));
+            System.out.println("HERE!");
             try {
                 getProcessor().process(exchange);
             } catch (Exception e) {
+                e.printStackTrace();
                 return new HookResult(HookReturnCode.DENYSOFT);
             }
             return new HookResult(HookReturnCode.OK);

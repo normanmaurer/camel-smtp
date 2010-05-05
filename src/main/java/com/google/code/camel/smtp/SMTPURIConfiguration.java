@@ -53,7 +53,8 @@ public class SMTPURIConfiguration implements SMTPConfiguration{
      * @throws Exception
      */
     public void parseURI(URI uri, Map<String, Object> parameters, SMTPComponent component) throws Exception {
-        
+        System.out.println(uri);
+
         bindIP = uri.getHost();
         bindPort = uri.getPort();
 

@@ -60,9 +60,11 @@ public class SMTPNettySession implements SMTPSession{
     
     public SMTPNettySession(SMTPConfiguration theConfigData, Log logger, ChannelHandlerContext handlerContext) {
         this.theConfigData = theConfigData;
+        this.logger = logger;
         connectionState = new HashMap<String, Object>();
         smtpID = random.nextInt(1024) + "";
-
+        this.handlerContext = handlerContext;
+        this.socketAddress = (InetSocketAddress) handlerContext.getChannel().getRemoteAddress();
         relayingAllowed = theConfigData.isRelayingAllowed(getRemoteIPAddress());    
     }
 

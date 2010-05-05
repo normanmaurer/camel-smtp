@@ -26,15 +26,17 @@ import java.util.List;
 import org.apache.james.protocols.smtp.SMTPResponse;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 
 /**
  * {@link OneToOneEncoder} which encodes {@link SMTPResponse} 
  *
  */
+@ChannelPipelineCoverage("all")
 public class SMTPResponseEncoder extends OneToOneEncoder {
 
-    private String charset = "US_ASCII";
+    private String charset = "US-ASCII";
 
     @Override
     protected Object encode(ChannelHandlerContext arg0, Channel arg1, Object obj) throws Exception {

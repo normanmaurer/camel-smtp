@@ -61,6 +61,13 @@ public class MailEnvelopeMessage extends DefaultMessage{
      * @param env
      */
     public void populate(MailEnvelope env) {
+     
+        try {
+            setBody(env.getMessageInputStream());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
         setHeader(SMTP_SENDER_ADRRESS, env.getSender().toString());
         
         StringBuilder rcptBuilder = new StringBuilder();
@@ -75,10 +82,5 @@ public class MailEnvelopeMessage extends DefaultMessage{
         }
         setHeader(SMTP_RCPT_ADRRESS_LIST, rcptBuilder.toString());
         setHeader(SMTP_MESSAGE_SIZE, env.getSize());
-        try {
-            setBody(env.getMessageInputStream());
-        } catch (Exception e) {
-            
-        }
     }
 }
