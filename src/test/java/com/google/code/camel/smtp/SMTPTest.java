@@ -19,9 +19,14 @@
 package com.google.code.camel.smtp;
 
 import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.Map;
 
+import javax.mail.Header;
+import javax.mail.internet.MimeMessage;
+
 import org.apache.camel.EndpointInject;
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
@@ -44,6 +49,7 @@ public class SMTPTest extends CamelTestSupport{
         };
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testSendMatchingMessage() throws Exception {
         String sender = "sender@localhost";
@@ -60,9 +66,25 @@ public class SMTPTest extends CamelTestSupport{
         client.disconnect();
         resultEndpoint.expectedMessageCount(1);
         resultEndpoint.expectedBodyReceived().body(InputStream.class);
-        Map<String, Object> headers = resultEndpoint.getReceivedExchanges().get(0).getIn().getHeaders();
+        Exchange ex = resultEndpoint.getReceivedExchanges().get(0);
+        Map<String, Object> headers = ex.getIn().getHeaders();
         assertEquals(sender, headers.get(MailEnvelopeMessage.SMTP_SENDER_ADRRESS));
         assertEquals(rcpt, headers.get(MailEnvelopeMessage.SMTP_RCPT_ADRRESS_LIST));
+        
+        
+        // check type converter
+        MimeMessage message = ex.getIn().getBody(MimeMessage.class);
+        Enumeration<Header> mHeaders = message.getAllHeaders();
+        Header header = null;
+        while (mHeaders.hasMoreElements()) {
+            header = mHeaders.nextElement();
+            if (header.getName().equals("Subject")) {
+                break;
+            }
+        }
+        assertNotNull(header);
+        assertEquals("Subject", header.getName());
+        assertEquals(header.getValue(), "test");
         resultEndpoint.assertIsSatisfied();
     }
 
