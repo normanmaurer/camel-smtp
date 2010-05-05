@@ -78,6 +78,7 @@ public class SMTPTest extends CamelTestSupport{
         Header header = null;
         while (mHeaders.hasMoreElements()) {
             header = mHeaders.nextElement();
+            System.out.println(header.toString());
             if (header.getName().equals("Subject")) {
                 break;
             }
