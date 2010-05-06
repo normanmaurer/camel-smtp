@@ -29,6 +29,7 @@ import java.util.Random;
 import org.apache.commons.logging.Log;
 import org.apache.james.protocols.api.LineHandler;
 import org.apache.james.protocols.api.Response;
+import org.apache.james.protocols.impl.LineHandlerUpstreamHandler;
 import org.apache.james.protocols.smtp.SMTPConfiguration;
 import org.apache.james.protocols.smtp.SMTPSession;
 import org.jboss.netty.channel.Channel;

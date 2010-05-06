@@ -26,6 +26,7 @@ import org.apache.james.protocols.api.ConnectHandler;
 import org.apache.james.protocols.api.LineHandler;
 import org.apache.james.protocols.api.ProtocolHandlerChain;
 import org.apache.james.protocols.api.ProtocolSession;
+import org.apache.james.protocols.impl.ChannelAttributeSupport;
 import org.apache.james.protocols.smtp.SMTPConfiguration;
 import org.apache.james.protocols.smtp.SMTPResponse;
 import org.apache.james.protocols.smtp.SMTPRetCode;
