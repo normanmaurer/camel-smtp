@@ -21,7 +21,6 @@ package com.google.code.camel.smtp;
 import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.net.InetSocketAddress;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -31,29 +30,11 @@ import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultConsumer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.james.protocols.api.AbstractProtocolHandlerChain;
-import org.apache.james.protocols.api.ProtocolHandlerChain;
 import org.apache.james.protocols.api.WiringException;
 import org.apache.james.protocols.smtp.MailEnvelope;
+import org.apache.james.protocols.smtp.SMTPProtocolHandlerChain;
 import org.apache.james.protocols.smtp.SMTPSession;
 import org.apache.james.protocols.smtp.core.AbstractAuthRequiredToRelayRcptHook;
-import org.apache.james.protocols.smtp.core.DataCmdHandler;
-import org.apache.james.protocols.smtp.core.DataLineMessageHookHandler;
-import org.apache.james.protocols.smtp.core.ExpnCmdHandler;
-import org.apache.james.protocols.smtp.core.HeloCmdHandler;
-import org.apache.james.protocols.smtp.core.HelpCmdHandler;
-import org.apache.james.protocols.smtp.core.MailCmdHandler;
-import org.apache.james.protocols.smtp.core.NoopCmdHandler;
-import org.apache.james.protocols.smtp.core.PostmasterAbuseRcptHook;
-import org.apache.james.protocols.smtp.core.QuitCmdHandler;
-import org.apache.james.protocols.smtp.core.RcptCmdHandler;
-import org.apache.james.protocols.smtp.core.ReceivedDataLineFilter;
-import org.apache.james.protocols.smtp.core.RsetCmdHandler;
-import org.apache.james.protocols.smtp.core.SMTPCommandDispatcherLineHandler;
-import org.apache.james.protocols.smtp.core.VrfyCmdHandler;
-import org.apache.james.protocols.smtp.core.WelcomeMessageHandler;
-import org.apache.james.protocols.smtp.core.esmtp.EhloCmdHandler;
-import org.apache.james.protocols.smtp.core.esmtp.MailSizeEsmtpExtension;
 import org.apache.james.protocols.smtp.hook.HookResult;
 import org.apache.james.protocols.smtp.hook.HookReturnCode;
 import org.apache.james.protocols.smtp.hook.MessageHook;
@@ -109,10 +90,12 @@ public class SMTPConsumer extends DefaultConsumer {
 
     
     private final class SMTPChannelPipelineFactory implements ChannelPipelineFactory {
-        private ProtocolHandlerChain chain;;
+        private SMTPProtocolHandlerChain chain;
         
         public SMTPChannelPipelineFactory() throws WiringException{
-            chain = new ProtocolHandlerChainImpl();
+            chain = new SMTPProtocolHandlerChain();
+            chain.addHook(new AllowToRelayHandler());
+            chain.addHook(new ProcessorMessageHook());
         }
         
         public ChannelPipeline getPipeline() throws Exception {
@@ -135,43 +118,7 @@ public class SMTPConsumer extends DefaultConsumer {
 
     }
 
-    /**
-     * ProtocolChain which handles SMTP command dispatching
-     *
-     */
-    private final class ProtocolHandlerChainImpl extends AbstractProtocolHandlerChain {
-        private final List<Object> handlers = new LinkedList<Object>();
-
-        public ProtocolHandlerChainImpl() throws WiringException {
-            handlers.add(new SMTPCommandDispatcherLineHandler());
-            handlers.add(new ExpnCmdHandler());
-            handlers.add(new EhloCmdHandler());
-            handlers.add(new HeloCmdHandler());
-            handlers.add(new HelpCmdHandler());
-            handlers.add(new MailCmdHandler());
-            handlers.add(new NoopCmdHandler());
-            handlers.add(new QuitCmdHandler());
-            handlers.add(new RcptCmdHandler());
-            handlers.add(new RsetCmdHandler());
-            handlers.add(new VrfyCmdHandler());
-            handlers.add(new DataCmdHandler());
-            handlers.add(new MailSizeEsmtpExtension());
-            handlers.add(new WelcomeMessageHandler());
-            handlers.add(new PostmasterAbuseRcptHook());
-            handlers.add(new ReceivedDataLineFilter());
-            handlers.add(new DataLineMessageHookHandler());
-            handlers.add(new ProcessorMessageHook());
-            handlers.add(new AllowToRelayHandler());
-            wireExtensibleHandlers();
-        }
-
-        @Override
-        protected List<Object> getHandlers() {
-            return handlers;
-        }
-
-    }
-    
+ 
     /**
      * Check if the domain is local and if so accept the email. If not reject it
      * 
