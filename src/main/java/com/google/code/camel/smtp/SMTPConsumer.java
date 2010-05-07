@@ -18,11 +18,7 @@
  ****************************************************************/
 package com.google.code.camel.smtp;
 
-import static org.jboss.netty.channel.Channels.pipeline;
-
-import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
@@ -30,7 +26,8 @@ import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultConsumer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.james.protocols.api.WiringException;
+import org.apache.james.protocols.impl.AbstractAsyncServer;
+import org.apache.james.protocols.impl.AbstractChannelPipelineFactory;
 import org.apache.james.protocols.smtp.MailEnvelope;
 import org.apache.james.protocols.smtp.SMTPProtocolHandlerChain;
 import org.apache.james.protocols.smtp.SMTPSession;
@@ -38,13 +35,9 @@ import org.apache.james.protocols.smtp.core.AbstractAuthRequiredToRelayRcptHook;
 import org.apache.james.protocols.smtp.hook.HookResult;
 import org.apache.james.protocols.smtp.hook.HookReturnCode;
 import org.apache.james.protocols.smtp.hook.MessageHook;
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.codec.frame.DelimiterBasedFrameDecoder;
-import org.jboss.netty.handler.codec.frame.Delimiters;
-import org.jboss.netty.handler.stream.ChunkedWriteHandler;
+import org.jboss.netty.channel.ChannelUpstreamHandler;
+import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 
 /**
  * Consumer which starts an SMTPServer and forward mails to the processer once they are received
@@ -53,9 +46,9 @@ import org.jboss.netty.handler.stream.ChunkedWriteHandler;
  */
 public class SMTPConsumer extends DefaultConsumer {
 
-    private ServerBootstrap bootstrap;
     private SMTPURIConfiguration config;
     private Log logger = LogFactory.getLog(SMTPConsumer.class);
+    private SMTPServer server;
     
     public SMTPConsumer(Endpoint endpoint, Processor processor, SMTPURIConfiguration config) {
         super(endpoint, processor);
@@ -68,15 +61,11 @@ public class SMTPConsumer extends DefaultConsumer {
     @Override
     protected void doStart() throws Exception {
         super.doStart();
-
-        bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool()));
-        // Configure the pipeline factory.
-        bootstrap.setPipelineFactory(new SMTPChannelPipelineFactory());
-
-        // Bind and start to accept incoming connections.
-        bootstrap.setOption("backlog", 250);
-        bootstrap.setOption("reuseAddress", true);
-        bootstrap.bind(new InetSocketAddress(config.getBindIP(), config.getBindPort()));
+        SMTPProtocolHandlerChain chain = new SMTPProtocolHandlerChain();
+        chain.addHook(new AllowToRelayHandler());
+        chain.addHook(new ProcessorMessageHook());
+        server = new SMTPServer(config.getBindIP(), config.getBindPort(), new SMTPChannelPipelineFactory(chain));
+        server.start();
     }
 
     /**
@@ -85,35 +74,40 @@ public class SMTPConsumer extends DefaultConsumer {
     @Override
     protected void doStop() throws Exception {
         super.doStop();
-        bootstrap.releaseExternalResources();
+        server.stop();
     }
 
-    
-    private final class SMTPChannelPipelineFactory implements ChannelPipelineFactory {
-        private SMTPProtocolHandlerChain chain;
-        
-        public SMTPChannelPipelineFactory() throws WiringException{
-            chain = new SMTPProtocolHandlerChain();
-            chain.addHook(new AllowToRelayHandler());
-            chain.addHook(new ProcessorMessageHook());
+    private final class SMTPServer extends AbstractAsyncServer {
+
+        private SMTPChannelPipelineFactory factory;
+
+        public SMTPServer(String ip, int port, SMTPChannelPipelineFactory factory) {
+            super(ip, port);
+            this.factory = factory;
+        }
+
+        @Override
+        protected ChannelPipelineFactory createPipelineFactory() {
+            return factory;
         }
         
-        public ChannelPipeline getPipeline() throws Exception {
-            
-            // Create a default pipeline implementation.
-            ChannelPipeline pipeline = pipeline();
+    }
+    private final class SMTPChannelPipelineFactory extends AbstractChannelPipelineFactory {
+        private SMTPProtocolHandlerChain chain;
+        
+        public SMTPChannelPipelineFactory(SMTPProtocolHandlerChain chain) {
+            this.chain = chain;
 
-            // Add the text line decoder which limit the max line length, don't
-            // strip the delimiter and use CRLF as delimiter
-            pipeline.addLast("framer", new DelimiterBasedFrameDecoder(8192, false, Delimiters.lineDelimiter()));
+        }
 
-            // encoder
-            pipeline.addLast("encoderResponse", new SMTPResponseEncoder());
+        @Override
+        protected OneToOneEncoder createEncoder() {
+            return new SMTPResponseEncoder();
+        }
 
-            pipeline.addLast("streamer", new ChunkedWriteHandler());
-            pipeline.addLast("coreHandler", new SMTPChannelUpstreamHandler(chain, config, logger));
-
-            return pipeline;
+        @Override
+        protected ChannelUpstreamHandler createHandler() {
+            return new SMTPChannelUpstreamHandler(chain, config, logger);
         }
 
     }
