@@ -18,41 +18,29 @@
  ****************************************************************/
 package com.google.code.camel.smtp;
 
-import static org.jboss.netty.buffer.ChannelBuffers.copiedBuffer;
-
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.james.protocols.impl.AbstractResponseEncoder;
 import org.apache.james.protocols.smtp.SMTPResponse;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 
 /**
  * {@link OneToOneEncoder} which encodes {@link SMTPResponse} 
  *
  */
-@ChannelPipelineCoverage("all")
-public class SMTPResponseEncoder extends OneToOneEncoder {
+public class SMTPResponseEncoder extends AbstractResponseEncoder<SMTPResponse> {
 
-    private String charset = "US-ASCII";
+    public SMTPResponseEncoder() {
+		super(SMTPResponse.class, Charset.forName("US-ASCII"));
+	}
 
-    @Override
-    protected Object encode(ChannelHandlerContext arg0, Channel arg1, Object obj) throws Exception {
-        StringBuilder builder = new StringBuilder();
-        SMTPResponse response = (SMTPResponse) obj;
-        List<String> lines = getResponse(response);
-        for (int i = 0; i < lines.size(); i++) {
-            builder.append(lines.get(i));
-            if (i < lines.size()) {
-                builder.append("\r\n");
-            }
-        }
-        return copiedBuffer(builder.toString(), charset);
-    }
-
-    private List<String> getResponse(SMTPResponse response) {
+    /*
+     * (non-Javadoc)
+     * @see org.apache.james.protocols.impl.AbstractResponseEncoder#getResponse(org.apache.james.protocols.api.Response)
+     */
+    protected List<String> getResponse(SMTPResponse response) {
         List<String> responseList = new ArrayList<String>();
 
         for (int k = 0; k < response.getLines().size(); k++) {
@@ -72,5 +60,6 @@ public class SMTPResponseEncoder extends OneToOneEncoder {
 
         return responseList;
     }
+
 
 }

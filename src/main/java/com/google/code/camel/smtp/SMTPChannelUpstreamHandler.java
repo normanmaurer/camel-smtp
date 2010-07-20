@@ -27,7 +27,6 @@ import org.apache.james.protocols.smtp.SMTPResponse;
 import org.apache.james.protocols.smtp.SMTPRetCode;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelPipelineCoverage;
 import org.jboss.netty.channel.ChannelUpstreamHandler;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.handler.codec.frame.TooLongFrameException;
@@ -36,7 +35,6 @@ import org.jboss.netty.handler.codec.frame.TooLongFrameException;
  * {@link ChannelUpstreamHandler} which handles the SMTP Protocol
  *
  */
-@ChannelPipelineCoverage("all")
 public class SMTPChannelUpstreamHandler extends AbstractChannelUpstreamHandler {
     private Log logger;
     private SMTPConfiguration config;
@@ -55,7 +53,6 @@ public class SMTPChannelUpstreamHandler extends AbstractChannelUpstreamHandler {
         } else {
             if (channel.isConnected()) {
                 e.getCause().printStackTrace();
-                //ctx.getChannel().write(new SMTPResponse(SMTPRetCode.LOCAL_ERROR, "Unable to process smtp request"));
             }
             cleanup(channel);
             channel.close();

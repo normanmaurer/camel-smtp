@@ -301,4 +301,13 @@ public class SMTPNettySession implements SMTPSession{
         return theConfigData.useHeloEhloEnforcement();
     }
 
+
+    /*
+     * (non-Javadoc)
+     * @see org.apache.james.protocols.smtp.SMTPSession#getPushedLineHandlerCount()
+     */
+	public int getPushedLineHandlerCount() {
+		return lineHandlerCount;
+	}
+
 }

@@ -37,6 +37,7 @@ import org.apache.james.protocols.smtp.hook.HookReturnCode;
 import org.apache.james.protocols.smtp.hook.MessageHook;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.ChannelUpstreamHandler;
+import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 
 /**
@@ -49,10 +50,13 @@ public class SMTPConsumer extends DefaultConsumer {
     private SMTPURIConfiguration config;
     private Log logger = LogFactory.getLog(SMTPConsumer.class);
     private SMTPServer server;
-    
+    private SMTPProtocolHandlerChain chain;
+
     public SMTPConsumer(Endpoint endpoint, Processor processor, SMTPURIConfiguration config) {
         super(endpoint, processor);
         this.config = config;
+
+        
     }
 
     /**
@@ -61,10 +65,10 @@ public class SMTPConsumer extends DefaultConsumer {
     @Override
     protected void doStart() throws Exception {
         super.doStart();
-        SMTPProtocolHandlerChain chain = new SMTPProtocolHandlerChain();
+        chain = new SMTPProtocolHandlerChain();
         chain.addHook(new AllowToRelayHandler());
         chain.addHook(new ProcessorMessageHook());
-        server = new SMTPServer(config.getBindIP(), config.getBindPort(), new SMTPChannelPipelineFactory(chain));
+        server = new SMTPServer(config.getBindIP(), config.getBindPort());
         server.start();
     }
 
@@ -79,23 +83,23 @@ public class SMTPConsumer extends DefaultConsumer {
 
     private final class SMTPServer extends AbstractAsyncServer {
 
-        private SMTPChannelPipelineFactory factory;
-
-        public SMTPServer(String ip, int port, SMTPChannelPipelineFactory factory) {
-            super(ip, port);
-            this.factory = factory;
+        public SMTPServer(String ip, int port) {
+            setIP(ip);
+            setPort(port);
         }
 
-        @Override
-        protected ChannelPipelineFactory createPipelineFactory() {
-            return factory;
-        }
+		@Override
+		protected ChannelPipelineFactory createPipelineFactory(ChannelGroup group) {
+			return new SMTPChannelPipelineFactory(chain, group);
+		}
+
         
     }
     private final class SMTPChannelPipelineFactory extends AbstractChannelPipelineFactory {
         private SMTPProtocolHandlerChain chain;
         
-        public SMTPChannelPipelineFactory(SMTPProtocolHandlerChain chain) {
+        public SMTPChannelPipelineFactory(SMTPProtocolHandlerChain chain, ChannelGroup group) {
+        	super(0,0,0, group);
             this.chain = chain;
 
         }
