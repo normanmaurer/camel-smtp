@@ -18,7 +18,6 @@
  ****************************************************************/
 package com.google.code.camel.smtp;
 
-import org.apache.commons.logging.Log;
 import org.apache.james.protocols.api.ProtocolHandlerChain;
 import org.apache.james.protocols.api.ProtocolSession;
 import org.apache.james.protocols.impl.AbstractChannelUpstreamHandler;
@@ -30,16 +29,17 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelUpstreamHandler;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.handler.codec.frame.TooLongFrameException;
+import org.slf4j.Logger;
 
 /**
  * {@link ChannelUpstreamHandler} which handles the SMTP Protocol
  *
  */
 public class SMTPChannelUpstreamHandler extends AbstractChannelUpstreamHandler {
-    private Log logger;
+    private Logger logger;
     private SMTPConfiguration config;
 
-    public SMTPChannelUpstreamHandler(ProtocolHandlerChain chain, SMTPConfiguration config, Log logger) {
+    public SMTPChannelUpstreamHandler(ProtocolHandlerChain chain, SMTPConfiguration config, Logger logger) {
     	super(chain);
     	this.logger = logger;
     	this.config = config;

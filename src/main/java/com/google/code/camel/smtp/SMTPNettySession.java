@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.commons.logging.Log;
 import org.apache.james.protocols.api.LineHandler;
 import org.apache.james.protocols.api.Response;
 import org.apache.james.protocols.impl.LineHandlerUpstreamHandler;
@@ -35,6 +34,7 @@ import org.apache.james.protocols.smtp.SMTPSession;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.stream.ChunkedStream;
+import org.slf4j.Logger;
 
 /**
  * {@link SMTPSession} implementation for use with Netty
@@ -55,11 +55,11 @@ public class SMTPNettySession implements SMTPSession{
 
     protected ChannelHandlerContext handlerContext;
     protected InetSocketAddress socketAddress;
-    protected Log logger;
+    protected Logger logger;
     protected String user;
 
     
-    public SMTPNettySession(SMTPConfiguration theConfigData, Log logger, ChannelHandlerContext handlerContext) {
+    public SMTPNettySession(SMTPConfiguration theConfigData, Logger logger, ChannelHandlerContext handlerContext) {
         this.theConfigData = theConfigData;
         this.logger = logger;
         connectionState = new HashMap<String, Object>();
@@ -123,7 +123,7 @@ public class SMTPNettySession implements SMTPSession{
     /**
      * @see org.apache.james.api.protocol.ProtocolSession#getLogger()
      */
-    public Log getLogger() {
+    public Logger getLogger() {
         return logger;
     }
     

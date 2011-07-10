@@ -18,14 +18,14 @@
  ****************************************************************/
 package com.google.code.camel.smtp;
 
+import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultConsumer;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.james.protocols.impl.AbstractAsyncServer;
 import org.apache.james.protocols.impl.AbstractChannelPipelineFactory;
 import org.apache.james.protocols.smtp.MailEnvelope;
@@ -39,6 +39,8 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.ChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Consumer which starts an SMTPServer and forward mails to the processer once they are received
@@ -48,7 +50,7 @@ import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 public class SMTPConsumer extends DefaultConsumer {
 
     private SMTPURIConfiguration config;
-    private Log logger = LogFactory.getLog(SMTPConsumer.class);
+    private Logger logger = LoggerFactory.getLogger(SMTPConsumer.class);
     private SMTPServer server;
     private SMTPProtocolHandlerChain chain;
 
@@ -69,7 +71,7 @@ public class SMTPConsumer extends DefaultConsumer {
         chain.addHook(new AllowToRelayHandler());
         chain.addHook(new ProcessorMessageHook());
         server = new SMTPServer(config.getBindIP(), config.getBindPort());
-        server.start();
+        server.bind();
     }
 
     /**
@@ -78,14 +80,13 @@ public class SMTPConsumer extends DefaultConsumer {
     @Override
     protected void doStop() throws Exception {
         super.doStop();
-        server.stop();
+        server.unbind();
     }
 
     private final class SMTPServer extends AbstractAsyncServer {
 
         public SMTPServer(String ip, int port) {
-            setIP(ip);
-            setPort(port);
+            setListenAddresses(Arrays.asList(new InetSocketAddress(ip, port)));
         }
 
 		@Override
