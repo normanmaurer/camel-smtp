@@ -1,0 +1,2 @@
+This project aims to make it easy to inject data via SMTP to a camel (http://camel.apache.org)
+route.
