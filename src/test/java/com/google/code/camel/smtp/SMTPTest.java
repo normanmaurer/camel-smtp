@@ -44,7 +44,7 @@ public class SMTPTest extends CamelTestSupport{
     protected RouteBuilder createRouteBuilder() {
         return new RouteBuilder() {
             public void configure() {
-                from("smtp:localhost:2525").to("mock:result");
+                from("james:localhost:2525").to("mock:result");
             }
         };
     }
@@ -72,7 +72,7 @@ public class SMTPTest extends CamelTestSupport{
         assertEquals(rcpt, headers.get(MailEnvelopeMessage.SMTP_RCPT_ADRRESS_LIST));
         
         
-        /*
+
         // check type converter
         MimeMessage message = ex.getIn().getBody(MimeMessage.class);
         Enumeration<Header> mHeaders = message.getAllHeaders();
@@ -87,7 +87,7 @@ public class SMTPTest extends CamelTestSupport{
         assertNotNull(header);
         assertEquals("Subject", header.getName());
         assertEquals(header.getValue(), "test");
-        */
+
         resultEndpoint.assertIsSatisfied();
     }
 

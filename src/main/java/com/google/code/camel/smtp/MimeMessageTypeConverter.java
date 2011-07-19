@@ -18,6 +18,7 @@
  ****************************************************************/
 package com.google.code.camel.smtp;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -35,8 +36,10 @@ import org.apache.camel.Converter;
 public class MimeMessageTypeConverter {
 
         @Converter
-        public static MimeMessage toMimeMessage(InputStream in) throws MessagingException {
-            return new MimeMessage(Session.getDefaultInstance(new Properties()),in);
+        public static MimeMessage toMimeMessage(InputStream in) throws MessagingException, IOException
+        {
+       		in.reset();
+        	return new MimeMessage(Session.getDefaultInstance(new Properties()),in);
         }
     
 }
