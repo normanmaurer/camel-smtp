@@ -38,8 +38,8 @@ public class MimeMessageTypeConverter {
         @Converter
         public static MimeMessage toMimeMessage(InputStream in) throws MessagingException, IOException
         {
-       		in.reset();
-        	return new MimeMessage(Session.getDefaultInstance(new Properties()),in);
+            in.reset();
+            return new MimeMessage(Session.getDefaultInstance(new Properties()),in);
         }
     
 }
