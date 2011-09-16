@@ -26,21 +26,15 @@ import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultConsumer;
-import org.apache.james.protocols.impl.AbstractAsyncServer;
-import org.apache.james.protocols.impl.AbstractChannelPipelineFactory;
 import org.apache.james.protocols.smtp.MailEnvelope;
+import org.apache.james.protocols.smtp.SMTPConfigurationImpl;
+import org.apache.james.protocols.smtp.SMTPProtocolHandlerChain;
 import org.apache.james.protocols.smtp.SMTPSession;
 import org.apache.james.protocols.smtp.core.AbstractAuthRequiredToRelayRcptHook;
 import org.apache.james.protocols.smtp.hook.HookResult;
 import org.apache.james.protocols.smtp.hook.HookReturnCode;
 import org.apache.james.protocols.smtp.hook.MessageHook;
-
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.ChannelUpstreamHandler;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.james.protocols.smtp.netty.SMTPServer;
 
 /**
  * Consumer which starts an SMTPServer and forward mails to the processer once they are received
@@ -50,7 +44,6 @@ import org.slf4j.LoggerFactory;
 public class SMTPConsumer extends DefaultConsumer {
 
     private SMTPURIConfiguration config;
-    private Logger logger = LoggerFactory.getLogger(SMTPConsumer.class);
     private SMTPServer server;
     private SMTPProtocolHandlerChain chain;
 
@@ -70,7 +63,8 @@ public class SMTPConsumer extends DefaultConsumer {
         chain = new SMTPProtocolHandlerChain();
         chain.addHook(new AllowToRelayHandler());
         chain.addHook(new ProcessorMessageHook());
-        server = new SMTPServer(config.getBindIP(), config.getBindPort());
+        server = new SMTPServer(new SMTPConfigurationImpl(), chain);
+        server.setListenAddresses(Arrays.asList(new InetSocketAddress(config.getBindIP(), config.getBindPort())));
         server.bind();
     }
 
@@ -81,40 +75,6 @@ public class SMTPConsumer extends DefaultConsumer {
     protected void doStop() throws Exception {
         super.doStop();
         server.unbind();
-    }
-
-    private final class SMTPServer extends AbstractAsyncServer {
-
-        public SMTPServer(String ip, int port) {
-            setListenAddresses(Arrays.asList(new InetSocketAddress(ip, port)));
-        }
-
-		@Override
-		protected ChannelPipelineFactory createPipelineFactory(ChannelGroup group) {
-			return new SMTPChannelPipelineFactory(chain, group);
-		}
-
-        
-    }
-    private final class SMTPChannelPipelineFactory extends AbstractChannelPipelineFactory {
-        private SMTPProtocolHandlerChain chain;
-        
-        public SMTPChannelPipelineFactory(SMTPProtocolHandlerChain chain, ChannelGroup group) {
-        	super(0,0,0, group);
-            this.chain = chain;
-
-        }
-
-        @Override
-        protected OneToOneEncoder createEncoder() {
-            return new SMTPResponseEncoder();
-        }
-
-        @Override
-        protected ChannelUpstreamHandler createHandler() {
-            return new SMTPChannelUpstreamHandler(chain, config, logger);
-        }
-
     }
 
  

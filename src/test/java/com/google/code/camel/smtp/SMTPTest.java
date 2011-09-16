@@ -44,7 +44,7 @@ public class SMTPTest extends CamelTestSupport{
     protected RouteBuilder createRouteBuilder() {
         return new RouteBuilder() {
             public void configure() {
-                from("james:localhost:2525").to("mock:result");
+                from("james-smtp:localhost:2525").to("mock:result");
             }
         };
     }
