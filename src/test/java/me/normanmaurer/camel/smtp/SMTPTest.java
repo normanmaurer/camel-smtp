@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations      *
  * under the License.                                           *
  ****************************************************************/
-package com.google.code.camel.smtp;
+package me.normanmaurer.camel.smtp;
 
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -24,6 +24,8 @@ import java.util.Map;
 
 import javax.mail.Header;
 import javax.mail.internet.MimeMessage;
+
+import me.normanmaurer.camel.smtp.MailEnvelopeMessage;
 
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
@@ -33,7 +35,6 @@ import org.apache.camel.test.junit4.CamelTestSupport;
 import org.apache.commons.net.smtp.SMTPClient;
 import org.junit.Test;
 
-import com.google.code.camel.smtp.MailEnvelopeMessage;
 
 public class SMTPTest extends CamelTestSupport{
 

@@ -16,47 +16,27 @@
  * specific language governing permissions and limitations      *
  * under the License.                                           *
  ****************************************************************/
-package com.google.code.camel.smtp;
+package me.normanmaurer.camel.smtp;
 
+import java.net.URI;
+import java.util.Map;
 
 import org.apache.camel.Component;
-import org.apache.camel.Consumer;
-import org.apache.camel.Processor;
-import org.apache.camel.Producer;
-import org.apache.camel.impl.DefaultEndpoint;
+import org.apache.camel.Endpoint;
+import org.apache.camel.impl.DefaultComponent;
 
 /**
- * Endpoint which create {@link SMTPConsumer} instances 
+ * {@link Component} which create new {@link SMTPEndpoint} instances 
  *
  */
-public class SMTPEndpoint extends DefaultEndpoint{
+public class SMTPComponent extends DefaultComponent{
+    SMTPURIConfiguration config = new SMTPURIConfiguration();
 
-    private SMTPURIConfiguration config;
-
-    public SMTPEndpoint(String endPointUri, Component component, SMTPURIConfiguration config) {
-        super(endPointUri, component);
-        this.config = config;
-    }
-    /*
-     * (non-Javadoc)
-     * @see org.apache.camel.Endpoint#createConsumer(org.apache.camel.Processor)
-     */
-    public Consumer createConsumer(Processor processor) throws Exception {
-        return new SMTPConsumer(this,processor, config);
-    }
-
-    /**
-     * Producing is not supported
-     */
-    public Producer createProducer() throws Exception {
-        return null;
-    }
-
-    /**
-     * Not a singleton
-     */
-    public boolean isSingleton() {
-        return false;
+    @Override
+    protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
+        config.parseURI(new URI(uri), parameters, this);
+        setProperties(config, parameters);
+        return new SMTPEndpoint(remaining, this, config);
     }
 
 }

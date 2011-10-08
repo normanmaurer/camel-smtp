@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations      *
  * under the License.                                           *
  ****************************************************************/
-package com.google.code.camel.smtp;
+package me.normanmaurer.camel.smtp;
 
 import java.net.URI;
 import java.util.ArrayList;

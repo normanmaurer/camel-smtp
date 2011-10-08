@@ -17,7 +17,7 @@
  * under the License.                                           *
  ****************************************************************/
 
-package com.google.code.camel.smtp;
+package me.normanmaurer.camel.smtp;
 
 import java.io.InputStream;
 import java.util.Iterator;

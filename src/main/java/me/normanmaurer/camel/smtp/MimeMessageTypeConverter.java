@@ -16,27 +16,30 @@
  * specific language governing permissions and limitations      *
  * under the License.                                           *
  ****************************************************************/
-package com.google.code.camel.smtp;
+package me.normanmaurer.camel.smtp;
 
-import java.net.URI;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
-import org.apache.camel.Component;
-import org.apache.camel.Endpoint;
-import org.apache.camel.impl.DefaultComponent;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+
+import org.apache.camel.Converter;
 
 /**
- * {@link Component} which create new {@link SMTPEndpoint} instances 
+ * Convert {@link InputStream} to {@link MimeMessage}
  *
  */
-public class SMTPComponent extends DefaultComponent{
-    SMTPURIConfiguration config = new SMTPURIConfiguration();
+@Converter
+public class MimeMessageTypeConverter {
 
-    @Override
-    protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
-        config.parseURI(new URI(uri), parameters, this);
-        setProperties(config, parameters);
-        return new SMTPEndpoint(remaining, this, config);
-    }
-
+        @Converter
+        public static MimeMessage toMimeMessage(InputStream in) throws MessagingException, IOException
+        {
+            in.reset();
+            return new MimeMessage(Session.getDefaultInstance(new Properties()),in);
+        }
+    
 }

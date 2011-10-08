@@ -16,30 +16,47 @@
  * specific language governing permissions and limitations      *
  * under the License.                                           *
  ****************************************************************/
-package com.google.code.camel.smtp;
+package me.normanmaurer.camel.smtp;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
-
-import org.apache.camel.Converter;
+import org.apache.camel.Component;
+import org.apache.camel.Consumer;
+import org.apache.camel.Processor;
+import org.apache.camel.Producer;
+import org.apache.camel.impl.DefaultEndpoint;
 
 /**
- * Convert {@link InputStream} to {@link MimeMessage}
+ * Endpoint which create {@link SMTPConsumer} instances 
  *
  */
-@Converter
-public class MimeMessageTypeConverter {
+public class SMTPEndpoint extends DefaultEndpoint{
 
-        @Converter
-        public static MimeMessage toMimeMessage(InputStream in) throws MessagingException, IOException
-        {
-            in.reset();
-            return new MimeMessage(Session.getDefaultInstance(new Properties()),in);
-        }
-    
+    private SMTPURIConfiguration config;
+
+    public SMTPEndpoint(String endPointUri, Component component, SMTPURIConfiguration config) {
+        super(endPointUri, component);
+        this.config = config;
+    }
+    /*
+     * (non-Javadoc)
+     * @see org.apache.camel.Endpoint#createConsumer(org.apache.camel.Processor)
+     */
+    public Consumer createConsumer(Processor processor) throws Exception {
+        return new SMTPConsumer(this,processor, config);
+    }
+
+    /**
+     * Producing is not supported
+     */
+    public Producer createProducer() throws Exception {
+        return null;
+    }
+
+    /**
+     * Not a singleton
+     */
+    public boolean isSingleton() {
+        return false;
+    }
+
 }

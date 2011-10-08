@@ -15,4 +15,4 @@
 # limitations under the License.
 #
 
-class=com.google.code.camel.smtp.SMTPComponent
+class=me.normanmaurer.camel.smtp.SMTPComponent

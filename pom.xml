@@ -19,12 +19,12 @@
 -->
 <project>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.google.code</groupId>
+  <groupId>me.normanmaurer</groupId>
   <artifactId>camel-smtp</artifactId>
   <name>Camel SMTP</name>
   <version>0.1-SNAPSHOT</version>
   <description>Camel component which consume messages via SMTP</description>
-  <url>http://james.apache.org/server/head/</url>
+  <url>https://github.com/normanmaurer/camel-smtp</url>
   <inceptionYear>2010</inceptionYear>
   <packaging>jar</packaging>
  
