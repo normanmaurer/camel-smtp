@@ -26,15 +26,16 @@ import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.impl.DefaultConsumer;
+import org.apache.james.protocols.impl.NettyServer;
 import org.apache.james.protocols.smtp.MailEnvelope;
 import org.apache.james.protocols.smtp.SMTPConfigurationImpl;
+import org.apache.james.protocols.smtp.SMTPProtocol;
 import org.apache.james.protocols.smtp.SMTPProtocolHandlerChain;
 import org.apache.james.protocols.smtp.SMTPSession;
 import org.apache.james.protocols.smtp.core.AbstractAuthRequiredToRelayRcptHook;
 import org.apache.james.protocols.smtp.hook.HookResult;
 import org.apache.james.protocols.smtp.hook.HookReturnCode;
 import org.apache.james.protocols.smtp.hook.MessageHook;
-import org.apache.james.protocols.smtp.netty.SMTPServer;
 
 /**
  * Consumer which starts an SMTPServer and forward mails to the processer once they are received
@@ -44,7 +45,7 @@ import org.apache.james.protocols.smtp.netty.SMTPServer;
 public class SMTPConsumer extends DefaultConsumer {
 
     private SMTPURIConfiguration config;
-    private SMTPServer server;
+    private NettyServer server;
     private SMTPProtocolHandlerChain chain;
 
     public SMTPConsumer(Endpoint endpoint, Processor processor, SMTPURIConfiguration config) {
@@ -63,7 +64,7 @@ public class SMTPConsumer extends DefaultConsumer {
         chain = new SMTPProtocolHandlerChain();
         chain.addHook(new AllowToRelayHandler());
         chain.addHook(new ProcessorMessageHook());
-        server = new SMTPServer(new SMTPConfigurationImpl(), chain);
+        server = new NettyServer(new SMTPProtocol(chain, new SMTPConfigurationImpl()));
         server.setListenAddresses(Arrays.asList(new InetSocketAddress(config.getBindIP(), config.getBindPort())));
         server.bind();
     }

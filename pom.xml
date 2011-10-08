@@ -150,11 +150,6 @@
     </dependency>
     <dependency>
       <groupId>org.apache.james.protocols</groupId>
-      <artifactId>protocols-smtp-netty</artifactId>
-      <version>1.6-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.james.protocols</groupId>
       <artifactId>protocols-smtp</artifactId>
       <version>1.6-SNAPSHOT</version>
     </dependency>
